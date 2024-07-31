@@ -5,6 +5,7 @@ import { Division } from '../SyntaxAnalyzer/Tree/Division';
 import { NumberConstant } from '../SyntaxAnalyzer/Tree/NumberConstant';
 import { NumberVariable } from './Variables/NumberVariable';
 import { TreeNodeBase } from '../SyntaxAnalyzer/Tree/TreeNodeBase';
+import { UnaryMinus } from 'src/SyntaxAnalyzer/Tree/UnaryMinus';
 
 export class Engine {
     /**
@@ -60,6 +61,11 @@ export class Engine {
         }
     }
 
+    /**
+     * Добавил работу с UnaryMinus
+     * Работает аналогично обычному "-",
+     * но левый операнд 0
+     */
     evaluateTerm(expression: TreeNodeBase) {
         if (expression instanceof Multiplication) {
             let leftOperand = this.evaluateTerm(expression.left);
@@ -72,6 +78,11 @@ export class Engine {
             let leftOperand = this.evaluateTerm(expression.left);
             let rightOperand = this.evaluateTerm(expression.right);
             let result = leftOperand.value / rightOperand.value;
+
+            return new NumberVariable(result);
+        } else if(expression instanceof UnaryMinus) {
+            let rightOperand = this.evaluateTerm(expression.right);
+            let result = 0 - rightOperand.value;
 
             return new NumberVariable(result);
         } else {

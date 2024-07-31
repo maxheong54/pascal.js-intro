@@ -8,6 +8,7 @@ import { LexicalAnalyzer } from '../LexicalAnalyzer/LexicalAnalyzer';
 import { TreeNodeBase } from './Tree/TreeNodeBase';
 import { SymbolBase } from '../LexicalAnalyzer/Symbols/SymbolBase';
 import { BinaryOperation } from './Tree/BinaryOperation';
+import { UnaryMinus } from './Tree/UnaryMinus';
 
 /**
  * Синтаксический анализатор - отвечает за построение синтаксического дерева
@@ -97,28 +98,45 @@ export class SyntaxAnalyzer {
 
     /**
      * Разбор "слагаемого"
+     * 
+     * Что добавил:
+     * если после очередного "-" или "+" снова идет "-"
+     * либо "-" будет первым символом, 
+     * в multiplier положит узел UnaryMinus
      */
     scanTerm(): TreeNodeBase {
-        let multiplier: TreeNodeBase = this.scanMultiplier();
+        let multiplier: TreeNodeBase; // = this.scanMultiplier();
         let operationSymbol: SymbolBase | null = null;
 
-        while (this.symbol !== null && (
-            this.symbol.symbolCode === SymbolsCodes.star ||
-            this.symbol.symbolCode === SymbolsCodes.slash
-        )) {
-
+        if (this.symbol.symbolCode === SymbolsCodes.minus) { 
             operationSymbol = this.symbol;
             this.nextSym();
-
-            let secondTerm: TreeNodeBase = this.scanMultiplier();
-
-            switch (operationSymbol.symbolCode) {
-                case SymbolsCodes.star:
-                    multiplier = new Multiplication(operationSymbol, multiplier, secondTerm);
-                    break;
-                case SymbolsCodes.slash:
-                    multiplier = new Division(operationSymbol, multiplier, secondTerm);
-                    break;
+            multiplier = new UnaryMinus(operationSymbol, this.scanTerm())    
+        } else {
+            multiplier = this.scanMultiplier();
+            while (this.symbol !== null && (
+                this.symbol.symbolCode === SymbolsCodes.star ||
+                this.symbol.symbolCode === SymbolsCodes.slash
+            )) {
+    
+                operationSymbol = this.symbol;
+    
+                if (operationSymbol.symbolCode === SymbolsCodes.minus) {
+                    multiplier = new UnaryMinus(operationSymbol, multiplier);    
+                } 
+    
+                this.nextSym();
+    
+                let secondTerm: TreeNodeBase = this.scanMultiplier();
+    
+                switch (operationSymbol.symbolCode) {
+                    case SymbolsCodes.star:
+                        multiplier = new Multiplication(operationSymbol, multiplier, secondTerm);
+                        break;
+                    case SymbolsCodes.slash:
+                        multiplier = new Division(operationSymbol, multiplier, secondTerm);
+                        break;
+                }
             }
         }
 

@@ -105,7 +105,7 @@ export class SyntaxAnalyzer {
      * в multiplier положит узел UnaryMinus
      */
     scanTerm(): TreeNodeBase {
-        let multiplier: TreeNodeBase; // = this.scanMultiplier();
+        let multiplier: TreeNodeBase; 
         let operationSymbol: SymbolBase | null = null;
 
         if (this.symbol.symbolCode === SymbolsCodes.minus) { 

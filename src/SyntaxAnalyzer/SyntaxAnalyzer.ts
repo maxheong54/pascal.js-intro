@@ -101,7 +101,7 @@ export class SyntaxAnalyzer {
      * 
      * Что добавил:
      * если после очередного "-" или "+" снова идет "-"
-     * либо "-" будет первым символом, 
+     * либо "-" будет первым символом,  
      * в multiplier положит узел UnaryMinus
      */
     scanTerm(): TreeNodeBase {
@@ -114,20 +114,28 @@ export class SyntaxAnalyzer {
             multiplier = new UnaryMinus(operationSymbol, this.scanTerm())    
         } else {
             multiplier = this.scanMultiplier();
+
             while (this.symbol !== null && (
                 this.symbol.symbolCode === SymbolsCodes.star ||
                 this.symbol.symbolCode === SymbolsCodes.slash
             )) {
     
                 operationSymbol = this.symbol;
-    
-                if (operationSymbol.symbolCode === SymbolsCodes.minus) {
-                    multiplier = new UnaryMinus(operationSymbol, multiplier);    
-                } 
-    
                 this.nextSym();
-    
-                let secondTerm: TreeNodeBase = this.scanMultiplier();
+
+                let secondTerm: TreeNodeBase 
+
+                if (this.symbol.stringValue === SymbolsCodes.minus
+                    // this.symbol.symbolCode !== SymbolsCodes.star &&
+                    // this.symbol.symbolCode !== SymbolsCodes.slash &&
+                    // this.symbol.symbolCode !== SymbolsCodes.integerConst
+                ) {
+                    let minus = this.symbol;
+                    this.nextSym();
+                    secondTerm = new UnaryMinus(minus, this.scanTerm());
+                } else {
+                    secondTerm = this.scanMultiplier();
+                }
     
                 switch (operationSymbol.symbolCode) {
                     case SymbolsCodes.star:

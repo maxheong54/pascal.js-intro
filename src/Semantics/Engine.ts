@@ -82,7 +82,7 @@ export class Engine {
             return new NumberVariable(result);
         } else if(expression instanceof UnaryMinus) {
             let rightOperand = this.evaluateTerm(expression.right);
-            let result = 0 - rightOperand.value;
+            let result = -rightOperand.value;
 
             return new NumberVariable(result);
         } else {

@@ -45,3 +45,7 @@ test('result = 0', () => {
 test('result = 15', () => {
   expect(pjs.engine.results[8]).toBe(15);
 });
+
+test('result = 10', () => {
+  expect(pjs.engine.results[9]).toBe(10);
+});

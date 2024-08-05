@@ -15,150 +15,131 @@ import { UnaryMinus } from './Tree/UnaryMinus';
  */
 export class SyntaxAnalyzer {
 
-    lexicalAnalyzer: LexicalAnalyzer;
-    symbol: SymbolBase | null;
+	lexicalAnalyzer: LexicalAnalyzer;
+	symbol: SymbolBase | null;
 
-    /**
-     * Деревья, которые будут построены (например, для каждой строки исходного кода)
-     */
-    trees: TreeNodeBase[];
+	/**
+ 	* Деревья, которые будут построены (например, для каждой строки исходного кода)
+ 	*/
+	trees: TreeNodeBase[];
 
-    constructor(lexicalAnalyzer: LexicalAnalyzer) {
-        this.lexicalAnalyzer = lexicalAnalyzer;
-        this.symbol = null;
-        this.trees = [];
-    }
+	constructor(lexicalAnalyzer: LexicalAnalyzer) {
+    	this.lexicalAnalyzer = lexicalAnalyzer;
+    	this.symbol = null;
+    	this.trees = [];
+	}
 
-    /**
-     * Перемещаемся по последовательности "символов" лексического анализатора,
-     * получая очередной "символ" ("слово")
-     */
-    nextSym(): void {
-        this.symbol = this.lexicalAnalyzer.nextSym();
-    }
+	/**
+ 	* Перемещаемся по последовательности "символов" лексического анализатора,
+ 	* получая очередной "символ" ("слово")
+ 	*/
+	nextSym(): void {
+    	this.symbol = this.lexicalAnalyzer.nextSym();
+	}
 
-    accept(expectedSymbolCode: string): void {
-        if (this.symbol === null) {
-            throw `${expectedSymbolCode} expected but END OF FILE found!`;
-        }
+	accept(expectedSymbolCode: string): void {
+    	if (this.symbol === null) {
+        	throw `${expectedSymbolCode} expected but END OF FILE found!`;
+    	}
 
-        if (this.symbol.symbolCode === expectedSymbolCode) {
+    	if (this.symbol.symbolCode === expectedSymbolCode) {
+        	this.nextSym();
+    	} else {
+        	throw `${expectedSymbolCode} expected but ${this.symbol.symbolCode} found!`;
+    	}
+	}
+
+	analyze(): TreeNodeBase[] {
+    	this.nextSym();
+
+    	while (this.symbol !== null) {
+        	let expression: TreeNodeBase = this.scanExpression();
+
+        	this.trees.push(expression);
+
+        	// Последняя строка может не заканчиваться переносом на следующую строку.
+        	if (this.symbol !== null) {
+            	this.accept(SymbolsCodes.endOfLine);
+        	}
+    	}
+
+    	return this.trees;
+	}
+
+	/**
+ 	* Разбор выражения
+ 	*/
+	scanExpression(): TreeNodeBase {
+    	let term: TreeNodeBase = this.scanTerm();
+    	let operationSymbol: SymbolBase | null = null;
+
+    	while (this.symbol !== null && (
+        	this.symbol.symbolCode === SymbolsCodes.plus ||
+        	this.symbol.symbolCode === SymbolsCodes.minus
+    	)) {
+
+        	operationSymbol = this.symbol;
+        	this.nextSym();
+
+        	let secondTerm: TreeNodeBase = this.scanTerm();
+
+        	switch (operationSymbol.symbolCode) {
+            	case SymbolsCodes.plus:
+                	term = new Addition(operationSymbol, term, secondTerm);
+                	break;
+            	case SymbolsCodes.minus:
+                	term = new Subtraction(operationSymbol, term, secondTerm);
+                	break;
+        	}
+    	}
+
+    	return term;
+	}
+
+	/**
+ 	* Разбор "слагаемого"
+ 	*/
+	scanTerm(): TreeNodeBase {
+    	let multiplier: TreeNodeBase = this.scanMultiplier();
+    	let operationSymbol: SymbolBase | null = null;
+
+    	while (this.symbol !== null && (
+        	this.symbol.symbolCode === SymbolsCodes.star ||
+        	this.symbol.symbolCode === SymbolsCodes.slash
+    	)) {
+
+        	operationSymbol = this.symbol;
+        	this.nextSym();
+
+        	let secondTerm: TreeNodeBase = this.scanMultiplier();
+
+        	switch (operationSymbol.symbolCode) {
+            	case SymbolsCodes.star:
+                	multiplier = new Multiplication(operationSymbol, multiplier, secondTerm);
+                	break;
+            	case SymbolsCodes.slash:
+                	multiplier = new Division(operationSymbol, multiplier, secondTerm);
+                	break;
+        	}
+    	}
+
+    	return multiplier;
+	}
+
+	/**
+ 	*  Разбор "множителя"
+ 	*/
+	scanMultiplier(): TreeNodeBase {
+    	let integerConstant: SymbolBase | null = this.symbol;
+
+        if (this.symbol.symbolCode === SymbolsCodes.minus) {
+            let minus = this.symbol;
             this.nextSym();
-        } else {
-            throw `${expectedSymbolCode} expected but ${this.symbol.symbolCode} found!`;
-        }
-    }
-
-    analyze(): TreeNodeBase[] {
-        this.nextSym();
-
-        while (this.symbol !== null) {
-            let expression: TreeNodeBase = this.scanExpression();
-
-            this.trees.push(expression);
-
-            // Последняя строка может не заканчиваться переносом на следующую строку.
-            if (this.symbol !== null) {
-                this.accept(SymbolsCodes.endOfLine);
-            }
+            return new UnaryMinus(minus, this.scanMultiplier());
         }
 
-        return this.trees;
-    }
+    	this.accept(SymbolsCodes.integerConst); // проверим, что текущий символ это именно константа, а не что-то еще
 
-    /**
-     * Разбор выражения
-     */
-    scanExpression(): TreeNodeBase {
-        let term: TreeNodeBase = this.scanTerm();
-        let operationSymbol: SymbolBase | null = null;
-
-        while (this.symbol !== null && (
-            this.symbol.symbolCode === SymbolsCodes.plus ||
-            this.symbol.symbolCode === SymbolsCodes.minus
-        )) {
-
-            operationSymbol = this.symbol;
-            this.nextSym();
-
-            let secondTerm: TreeNodeBase = this.scanTerm();
-
-            switch (operationSymbol.symbolCode) {
-                case SymbolsCodes.plus:
-                    term = new Addition(operationSymbol, term, secondTerm);
-                    break;
-                case SymbolsCodes.minus:
-                    term = new Subtraction(operationSymbol, term, secondTerm);
-                    break;
-            }
-        }
-
-        return term;
-    }
-
-    /**
-     * Разбор "слагаемого"
-     * 
-     * Что добавил:
-     * если после очередного "-" или "+" снова идет "-"
-     * либо "-" будет первым символом,  
-     * в multiplier положит узел UnaryMinus
-     */
-    scanTerm(): TreeNodeBase {
-        let multiplier: TreeNodeBase; 
-        let operationSymbol: SymbolBase | null = null;
-
-        if (this.symbol.symbolCode === SymbolsCodes.minus) { 
-            operationSymbol = this.symbol;
-            this.nextSym();
-            multiplier = new UnaryMinus(operationSymbol, this.scanTerm())    
-        } else {
-            multiplier = this.scanMultiplier();
-
-            while (this.symbol !== null && (
-                this.symbol.symbolCode === SymbolsCodes.star ||
-                this.symbol.symbolCode === SymbolsCodes.slash
-            )) {
-    
-                operationSymbol = this.symbol;
-                this.nextSym();
-
-                let secondTerm: TreeNodeBase 
-
-                if (this.symbol.stringValue === SymbolsCodes.minus
-                    // this.symbol.symbolCode !== SymbolsCodes.star &&
-                    // this.symbol.symbolCode !== SymbolsCodes.slash &&
-                    // this.symbol.symbolCode !== SymbolsCodes.integerConst
-                ) {
-                    let minus = this.symbol;
-                    this.nextSym();
-                    secondTerm = new UnaryMinus(minus, this.scanTerm());
-                } else {
-                    secondTerm = this.scanMultiplier();
-                }
-    
-                switch (operationSymbol.symbolCode) {
-                    case SymbolsCodes.star:
-                        multiplier = new Multiplication(operationSymbol, multiplier, secondTerm);
-                        break;
-                    case SymbolsCodes.slash:
-                        multiplier = new Division(operationSymbol, multiplier, secondTerm);
-                        break;
-                }
-            }
-        }
-
-        return multiplier;
-    }
-
-    /**
-     *  Разбор "множителя"
-     */
-    scanMultiplier(): NumberConstant {
-        let integerConstant: SymbolBase | null = this.symbol;
-
-        this.accept(SymbolsCodes.integerConst); // проверим, что текущий символ это именно константа, а не что-то еще
-
-        return new NumberConstant(integerConstant);
-    }
+    	return new NumberConstant(integerConstant);
+	}
 };

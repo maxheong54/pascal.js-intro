@@ -77,6 +77,9 @@ export class Engine {
         } else if (expression instanceof Division) {
             let leftOperand = this.evaluateTerm(expression.left);
             let rightOperand = this.evaluateTerm(expression.right);
+            if (rightOperand.value === 0) {
+                throw 'Error: Division by zero is not allowed.';
+            }
             let result = leftOperand.value / rightOperand.value;
 
             return new NumberVariable(result);

@@ -38,3 +38,7 @@ test('result = 80', () => {
     expect(pjs.engine.results[6]).toBe(15);
   });
 
+  test('result = 0', () => {
+    expect(pjs.engine.results[7]).toBe(0);
+  });
+

@@ -131,11 +131,22 @@ export class SyntaxAnalyzer {
  	*/
 	scanMultiplier(): TreeNodeBase {
     	let integerConstant: SymbolBase | null = this.symbol;
+        let parenthesisExpression: TreeNodeBase | null = null;
 
         if (this.symbol.symbolCode === SymbolsCodes.minus) {
             let minus = this.symbol;
             this.nextSym();
             return new UnaryMinus(minus, this.scanMultiplier());
+        }
+
+        if (this.symbol.symbolCode === SymbolsCodes.openParenthesis) {
+            this.nextSym();
+            parenthesisExpression = this.scanExpression();
+        }
+
+        if (this.symbol.symbolCode === SymbolsCodes.closeParenthesis) {
+            this.nextSym();
+            return parenthesisExpression;
         }
 
     	this.accept(SymbolsCodes.integerConst); // проверим, что текущий символ это именно константа, а не что-то еще

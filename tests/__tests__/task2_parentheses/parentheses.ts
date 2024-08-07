@@ -38,7 +38,19 @@ test('result = 80', () => {
     expect(pjs.engine.results[6]).toBe(15);
   });
 
-  test('result = 0', () => {
-    expect(pjs.engine.results[7]).toBe(0);
+  test('result = 16', () => {
+    expect(pjs.engine.results[7]).toBe(16);
+  });
+
+  test('result = 4', () => {
+    expect(pjs.engine.results[8]).toBe(4);
+  });
+
+  test('result = -3', () => {
+    expect(pjs.engine.results[9]).toBe(-3);
+  });
+
+  test('result = -15', () => {
+    expect(pjs.engine.results[10]).toBe(-15);
   });
 

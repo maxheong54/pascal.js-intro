@@ -6,6 +6,7 @@ import { NumberConstant } from '../SyntaxAnalyzer/Tree/NumberConstant';
 import { NumberVariable } from './Variables/NumberVariable';
 import { TreeNodeBase } from '../SyntaxAnalyzer/Tree/TreeNodeBase';
 import { UnaryMinus } from 'src/SyntaxAnalyzer/Tree/UnaryMinus';
+import { BinaryOperation } from 'src/SyntaxAnalyzer/Tree/BinaryOperation';
 
 export class Engine {
     /**
@@ -96,8 +97,7 @@ export class Engine {
             let result = -rightOperand.value;
 
             return new NumberVariable(result);
-        } else if (expression instanceof Addition 
-            || expression instanceof Subtraction) {
+        } else if (expression instanceof BinaryOperation) {
             return this.evaluateSimpleExpression(expression);
         } else {
             throw 'Number Constant expected.';

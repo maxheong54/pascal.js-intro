@@ -142,10 +142,9 @@ export class SyntaxAnalyzer {
         if (this.symbol.symbolCode === SymbolsCodes.openParenthesis) {
             this.nextSym();
             parenthesisExpression = this.scanExpression();
-        }
 
-        if (this.symbol.symbolCode === SymbolsCodes.closeParenthesis) {
-            this.nextSym();
+            this.accept(SymbolsCodes.closeParenthesis)
+
             return parenthesisExpression;
         }
 

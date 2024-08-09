@@ -72,6 +72,8 @@ export class LexicalAnalyzer {
             return this.getSymbol(SymbolsCodes.identifier);
 
         } else if (/\n/.exec(this.char) !== null) {
+            this.fileIO.lineNumber++;
+            this.fileIO.charPosition = 0;
             this.char = this.fileIO.nextCh();
             return this.getSymbol(SymbolsCodes.endOfLine);
         } else {
@@ -98,6 +100,9 @@ export class LexicalAnalyzer {
                 case ')':
                     this.char = this.fileIO.nextCh();
                     return this.getSymbol(SymbolsCodes.closeParenthesis);
+                case '=':
+                    this.char = this.fileIO.nextCh();
+                    return this.getSymbol(SymbolsCodes.equalSymbol);
             }
         }
         throw `Inadmissible symbol:${this.char}.`;

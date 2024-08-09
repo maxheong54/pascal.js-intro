@@ -7,6 +7,7 @@ import { NumberVariable } from './Variables/NumberVariable';
 import { TreeNodeBase } from '../SyntaxAnalyzer/Tree/TreeNodeBase';
 import { UnaryMinus } from 'src/SyntaxAnalyzer/Tree/UnaryMinus';
 import { BinaryOperation } from 'src/SyntaxAnalyzer/Tree/BinaryOperation';
+import { Variable } from 'src/SyntaxAnalyzer/Tree/Variable';
 
 export class Engine {
     /**
@@ -20,10 +21,12 @@ export class Engine {
      * лежит какой-то узел, описывающий по сути "последнюю" по вложенности операцию
      */
     trees: TreeNodeBase[];
+    variables: {[key: string]: any};
 
-    constructor(trees: TreeNodeBase[]) {
+    constructor(trees: TreeNodeBase[], variables: object) {
         this.trees = trees;
         this.results = [];
+        this.variables = variables;
     }
 
     run() {
@@ -99,6 +102,8 @@ export class Engine {
             return new NumberVariable(result);
         } else if (expression instanceof BinaryOperation) {
             return this.evaluateSimpleExpression(expression);
+        } else if (expression instanceof Variable) {
+            return this.evaluateSimpleExpression(this.variables[expression.varName]);
         } else {
             throw 'Number Constant expected.';
         }

@@ -10,7 +10,7 @@ export class FileIO {
     constructor(fileName) {
         this.charPointer = 0;
         this.charPosition = 0;
-        this.lineNumber = 0;
+        this.lineNumber = 1;
         this.text = fs.readFileSync(fileName, 'utf-8');
     }
 

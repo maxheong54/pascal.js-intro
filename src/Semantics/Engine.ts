@@ -103,7 +103,15 @@ export class Engine {
         } else if (expression instanceof BinaryOperation) {
             return this.evaluateSimpleExpression(expression);
         } else if (expression instanceof Variable) {
-            return this.evaluateSimpleExpression(this.variables[expression.varName]);
+            let variableValue: number;
+            if (expression.equalFlag) {
+                variableValue = this.variables[expression.symbol.value][1];
+                this.variables[expression.symbol.value].shift();
+            } else {
+                variableValue = this.variables[expression.symbol.value][0];
+            }
+
+            return new NumberVariable(variableValue);
         } else {
             throw 'Number Constant expected.';
         }

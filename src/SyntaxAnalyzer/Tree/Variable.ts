@@ -2,10 +2,10 @@ import { SymbolBase } from "src/LexicalAnalyzer/Symbols/SymbolBase";
 import { TreeNodeBase } from "./TreeNodeBase";
 
 export class Variable extends TreeNodeBase{
-    varName: string;
+    equalFlag: boolean;
 
-    constructor(symbol: SymbolBase, varName: string) {
+    constructor(symbol: SymbolBase, equalFlag: boolean) {
         super(symbol);
-        this.varName = varName;
+        this.equalFlag = equalFlag;
     }
 }

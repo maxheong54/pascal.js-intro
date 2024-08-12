@@ -10,6 +10,8 @@ import { SymbolBase } from '../LexicalAnalyzer/Symbols/SymbolBase';
 import { BinaryOperation } from './Tree/BinaryOperation';
 import { UnaryMinus } from './Tree/UnaryMinus';
 import { Variable } from './Tree/Variable';
+import { Engine } from 'src/Semantics/Engine';
+import { NumberVariable } from 'src/Semantics/Variables/NumberVariable';
 
 /**
  * Синтаксический анализатор - отвечает за построение синтаксического дерева
@@ -23,7 +25,7 @@ export class SyntaxAnalyzer {
  	* Деревья, которые будут построены (например, для каждой строки исходного кода)
  	*/
 	trees: TreeNodeBase[];
-	variables: {[key:string]:any};
+	variables: {[key:string]: number[]};
 
 	constructor(lexicalAnalyzer: LexicalAnalyzer) {
     	this.lexicalAnalyzer = lexicalAnalyzer;
@@ -73,18 +75,23 @@ export class SyntaxAnalyzer {
  	* Разбор выражения
  	*/
 	scanExpression(): TreeNodeBase {
-    	let term: TreeNodeBase = this.scanTerm();
+		let term: TreeNodeBase = this.scanTerm();;
     	let operationSymbol: SymbolBase | null = null;
 
     	while (this.symbol !== null && (
         	this.symbol.symbolCode === SymbolsCodes.plus ||
-        	this.symbol.symbolCode === SymbolsCodes.minus
+        	this.symbol.symbolCode === SymbolsCodes.minus ||
+			this.symbol.symbolCode === SymbolsCodes.equalSymbol
     	)) {
 
         	operationSymbol = this.symbol;
+			let position = this.lexicalAnalyzer.fileIO.charPosition -1;
+			let line = this.lexicalAnalyzer.fileIO.lineNumber;
         	this.nextSym();
 
-        	let secondTerm: TreeNodeBase = this.scanTerm();
+        	let secondTerm: TreeNodeBase = 
+				(operationSymbol.symbolCode === SymbolsCodes.equalSymbol) ? 
+					this.scanExpression() : this.scanTerm();
 
         	switch (operationSymbol.symbolCode) {
             	case SymbolsCodes.plus:
@@ -93,6 +100,21 @@ export class SyntaxAnalyzer {
             	case SymbolsCodes.minus:
                 	term = new Subtraction(operationSymbol, term, secondTerm);
                 	break;
+				case SymbolsCodes.equalSymbol:
+					if (term.symbol.symbolCode !== SymbolsCodes.identifier) {
+						throw `Invalid assignment at position ${position} in line ${line}.`;
+					}
+					let engine = new Engine([secondTerm], this.variables);
+					engine.run();
+
+					if (term.symbol.value in this.variables) {
+						this.variables[term.symbol.value].push(engine.results[0]);
+						//@ts-ignore
+						term.equalFlag = true;
+					} else {
+						this.variables[term.symbol.value] = [engine.results[0]];
+					}
+					break;
         	}
     	}
 
@@ -146,34 +168,22 @@ export class SyntaxAnalyzer {
 			case SymbolsCodes.openParenthesis:
 				this.nextSym();
 				parenthesisExpression = this.scanExpression();
-
 				this.accept(SymbolsCodes.closeParenthesis)
-
 				return parenthesisExpression;
 
 			case SymbolsCodes.identifier:
-				let varName = this.symbol.value;
+				let variable = this.symbol;
 				//@ts-ignore
-				let charPosition = this.lexicalAnalyzer.fileIO.charPosition - varName.length;
+				let position = this.lexicalAnalyzer.fileIO.charPosition - variable.value.length;
+				let line = this.lexicalAnalyzer.fileIO.lineNumber;
 				this.nextSym();
-
-				// @ts-ignore
-				if (this.symbol?.symbolCode === SymbolsCodes.equalSymbol) {
-					this.nextSym();
-					this.variables[varName] = this.scanExpression();
-					//@ts-ignore
-					return new Variable(integerConstant, varName);
-				} else if (varName in this.variables) {
-					return this.variables[varName];
-				} else {
-					
-					let lineNumber = (//@ts-ignore
-						this.symbol?.symbolCode === SymbolsCodes.endOfLine) ?
-						this.lexicalAnalyzer.fileIO.lineNumber :
-						this.lexicalAnalyzer.fileIO.lineNumber + 1;
-					let err = `The variable "${varName}" at line ${lineNumber}, position ${charPosition} is not initialized.`;
-					throw err;
+				//@ts-ignore
+				if (this.symbol?.symbolCode !== SymbolsCodes.equalSymbol && 
+					!(variable.value in this.variables)) {
+					throw `Variable ${variable.value} is not initialized at ${position} position in line ${line}.`;
 				}
+
+				return new Variable(variable, false);
 			default:
 				this.accept(SymbolsCodes.integerConst); // проверим, что текущий символ это именно константа, а не что-то еще
 				return new NumberConstant(integerConstant);

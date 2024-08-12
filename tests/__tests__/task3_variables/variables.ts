@@ -29,3 +29,43 @@ test('result = 3', () => {
 test('result = 15', () => {
     expect(pjs.engine.results[4]).toBe(15);
 });
+
+test('result = 28', () => {
+  expect(pjs.engine.results[5]).toBe(28);
+});
+
+test('result = 28', () => {
+  expect(pjs.engine.results[6]).toBe(28);
+});
+
+test('result = 35', () => {
+  expect(pjs.engine.results[7]).toBe(35);
+});
+
+test('result = 9', () => {
+  expect(pjs.engine.results[8]).toBe(9);
+});
+
+test('result = 35', () => {
+  expect(pjs.engine.results[9]).toBe(35);
+});
+
+test('result = 15', () => {
+  expect(pjs.engine.results[10]).toBe(15);
+});
+
+test('result = 15', () => {
+  expect(pjs.engine.results[11]).toBe(15);
+});
+
+test('result = 9', () => {
+  expect(pjs.engine.results[12]).toBe(9);
+});
+
+test('result = 9', () => {
+  expect(pjs.engine.results[13]).toBe(9);
+});
+
+test('result = 9', () => {
+  expect(pjs.engine.results[14]).toBe(9);
+});

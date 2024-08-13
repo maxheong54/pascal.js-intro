@@ -69,3 +69,15 @@ test('result = 9', () => {
 test('result = 9', () => {
   expect(pjs.engine.results[14]).toBe(9);
 });
+
+test('result = 9', () => {
+  expect(pjs.engine.results[15]).toBe(13);
+});
+
+test('result = 9', () => {
+  expect(pjs.engine.results[16]).toBe(36);
+});
+
+test('result = 9', () => {
+  expect(pjs.engine.results[17]).toBe(72);
+});

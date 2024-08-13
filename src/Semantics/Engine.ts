@@ -8,6 +8,7 @@ import { TreeNodeBase } from '../SyntaxAnalyzer/Tree/TreeNodeBase';
 import { UnaryMinus } from 'src/SyntaxAnalyzer/Tree/UnaryMinus';
 import { BinaryOperation } from 'src/SyntaxAnalyzer/Tree/BinaryOperation';
 import { Variable } from 'src/SyntaxAnalyzer/Tree/Variable';
+import { Assignment } from 'src/SyntaxAnalyzer/Tree/Assignment';
 
 export class Engine {
     /**
@@ -21,12 +22,12 @@ export class Engine {
      * лежит какой-то узел, описывающий по сути "последнюю" по вложенности операцию
      */
     trees: TreeNodeBase[];
-    variables: {[key: string]: any};
+    variables: {[key: string]: number};
 
-    constructor(trees: TreeNodeBase[], variables: object) {
+    constructor(trees: TreeNodeBase[]) {
         this.trees = trees;
         this.results = [];
-        this.variables = variables;
+        this.variables = {};
     }
 
     run() {
@@ -45,6 +46,11 @@ export class Engine {
 
     evaluateSimpleExpression(expression: TreeNodeBase): NumberVariable {
 
+        if (expression instanceof Assignment) {
+            let value = this.evaluateSimpleExpression(expression.expression);
+            this.variables[expression.identifier] = value.value;
+            return value;
+        }
         if (expression instanceof Addition
             || expression instanceof Subtraction) {
 
@@ -95,23 +101,18 @@ export class Engine {
     evaluateMultiplier(expression: TreeNodeBase) {
         if (expression instanceof NumberConstant) {
             return new NumberVariable(expression.symbol.value);
+
         } else if(expression instanceof UnaryMinus) {
             let rightOperand = this.evaluateTerm(expression.right);
             let result = -rightOperand.value;
-
             return new NumberVariable(result);
+
         } else if (expression instanceof BinaryOperation) {
             return this.evaluateSimpleExpression(expression);
-        } else if (expression instanceof Variable) {
-            let variableValue: number;
-            if (expression.equalFlag) {
-                variableValue = this.variables[expression.symbol.value][1];
-                this.variables[expression.symbol.value].shift();
-            } else {
-                variableValue = this.variables[expression.symbol.value][0];
-            }
 
-            return new NumberVariable(variableValue);
+        } else if (expression instanceof Variable) {
+            return new NumberVariable(this.variables[expression.symbol.value]);
+
         } else {
             throw 'Number Constant expected.';
         }

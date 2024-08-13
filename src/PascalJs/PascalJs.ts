@@ -19,7 +19,7 @@ export class PascalJs {
         var lexicalAnalyzer = new LexicalAnalyzer(fileIO);
         var syntaxAnalyzer = new SyntaxAnalyzer(lexicalAnalyzer);
         syntaxAnalyzer.analyze();
-        var engine = new Engine(syntaxAnalyzer.trees, syntaxAnalyzer.variables);
+        var engine = new Engine(syntaxAnalyzer.trees);
         engine.run();
 
         this.engine = engine;

@@ -1,5 +1,4 @@
 import { SymbolBase } from '../../LexicalAnalyzer/Symbols/SymbolBase';
-import { BinaryOperation } from './BinaryOperation';
 import { TreeNodeBase } from './TreeNodeBase';
 
 export class UnaryMinus extends TreeNodeBase

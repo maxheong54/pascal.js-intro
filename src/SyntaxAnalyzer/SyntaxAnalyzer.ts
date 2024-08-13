@@ -7,11 +7,9 @@ import { SymbolsCodes } from '../LexicalAnalyzer/SymbolsCodes';
 import { LexicalAnalyzer } from '../LexicalAnalyzer/LexicalAnalyzer';
 import { TreeNodeBase } from './Tree/TreeNodeBase';
 import { SymbolBase } from '../LexicalAnalyzer/Symbols/SymbolBase';
-import { BinaryOperation } from './Tree/BinaryOperation';
 import { UnaryMinus } from './Tree/UnaryMinus';
 import { Variable } from './Tree/Variable';
-import { Engine } from 'src/Semantics/Engine';
-import { NumberVariable } from 'src/Semantics/Variables/NumberVariable';
+import { Assignment } from './Tree/Assignment';
 
 /**
  * Синтаксический анализатор - отвечает за построение синтаксического дерева
@@ -25,13 +23,13 @@ export class SyntaxAnalyzer {
  	* Деревья, которые будут построены (например, для каждой строки исходного кода)
  	*/
 	trees: TreeNodeBase[];
-	variables: {[key:string]: number[]};
+	variables: string[];
 
 	constructor(lexicalAnalyzer: LexicalAnalyzer) {
     	this.lexicalAnalyzer = lexicalAnalyzer;
     	this.symbol = null;
     	this.trees = [];
-		this.variables = {};
+		this.variables = [];
 	}
 
 	/**
@@ -104,16 +102,8 @@ export class SyntaxAnalyzer {
 					if (term.symbol.symbolCode !== SymbolsCodes.identifier) {
 						throw `Invalid assignment at position ${position} in line ${line}.`;
 					}
-					let engine = new Engine([secondTerm], this.variables);
-					engine.run();
-
-					if (term.symbol.value in this.variables) {
-						this.variables[term.symbol.value].push(engine.results[0]);
-						//@ts-ignore
-						term.equalFlag = true;
-					} else {
-						this.variables[term.symbol.value] = [engine.results[0]];
-					}
+					this.variables.push(term.symbol.value.toString());
+					term = new Assignment(term.symbol, secondTerm);
 					break;
         	}
     	}
@@ -173,17 +163,17 @@ export class SyntaxAnalyzer {
 
 			case SymbolsCodes.identifier:
 				let variable = this.symbol;
-				//@ts-ignore
-				let position = this.lexicalAnalyzer.fileIO.charPosition - variable.value.length;
 				let line = this.lexicalAnalyzer.fileIO.lineNumber;
+				let position = 
+					this.lexicalAnalyzer.fileIO.charPosition - variable.value.toString().length;
 				this.nextSym();
-				//@ts-ignore
-				if (this.symbol?.symbolCode !== SymbolsCodes.equalSymbol && 
-					!(variable.value in this.variables)) {
-					throw `Variable ${variable.value} is not initialized at ${position} position in line ${line}.`;
-				}
+				if (this.symbol?.stringValue !== SymbolsCodes.equalSymbol &&
+					!this.variables.includes(variable.value.toString())) {
+						throw `Variable "${variable.value}" is not initialized` +
+							` at position ${position} in line ${line}`;
+					}
+				return new Variable(variable);
 
-				return new Variable(variable, false);
 			default:
 				this.accept(SymbolsCodes.integerConst); // проверим, что текущий символ это именно константа, а не что-то еще
 				return new NumberConstant(integerConstant);

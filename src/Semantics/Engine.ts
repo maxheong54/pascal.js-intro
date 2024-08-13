@@ -78,15 +78,15 @@ export class Engine {
      */
     evaluateTerm(expression: TreeNodeBase) {
         if (expression instanceof Multiplication) {
-            let leftOperand = this.evaluateTerm(expression.left);
-            let rightOperand = this.evaluateTerm(expression.right);
+            let leftOperand = this.evaluateSimpleExpression(expression.left);
+            let rightOperand = this.evaluateSimpleExpression(expression.right);
 
             let result = leftOperand.value * rightOperand.value;
 
             return new NumberVariable(result);
         } else if (expression instanceof Division) {
-            let leftOperand = this.evaluateTerm(expression.left);
-            let rightOperand = this.evaluateTerm(expression.right);
+            let leftOperand = this.evaluateSimpleExpression(expression.left);
+            let rightOperand = this.evaluateSimpleExpression(expression.right);
             if (rightOperand.value === 0) {
                 throw 'Error: Division by zero is not allowed.';
             }
@@ -103,7 +103,7 @@ export class Engine {
             return new NumberVariable(expression.symbol.value);
 
         } else if(expression instanceof UnaryMinus) {
-            let rightOperand = this.evaluateTerm(expression.right);
+            let rightOperand = this.evaluateSimpleExpression(expression.right);
             let result = -rightOperand.value;
             return new NumberVariable(result);
 
@@ -111,6 +111,10 @@ export class Engine {
             return this.evaluateSimpleExpression(expression);
 
         } else if (expression instanceof Variable) {
+            if (!(expression.symbol.value in this.variables)) {
+                throw `Variable "${expression.symbol.value}" is not initialized` +
+					` at position ${expression.charPosition} in line ${expression.lineNumber}`;
+            }
             return new NumberVariable(this.variables[expression.symbol.value]);
 
         } else {

@@ -81,3 +81,11 @@ test('result = 9', () => {
 test('result = 9', () => {
   expect(pjs.engine.results[17]).toBe(72);
 });
+
+test('result = -4', () => {
+  expect(pjs.engine.results[18]).toBe(-4);
+});
+
+test('result = 1', () => {
+  expect(pjs.engine.results[19]).toBe(1);
+});

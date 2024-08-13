@@ -23,13 +23,11 @@ export class SyntaxAnalyzer {
  	* Деревья, которые будут построены (например, для каждой строки исходного кода)
  	*/
 	trees: TreeNodeBase[];
-	variables: string[];
 
 	constructor(lexicalAnalyzer: LexicalAnalyzer) {
     	this.lexicalAnalyzer = lexicalAnalyzer;
     	this.symbol = null;
     	this.trees = [];
-		this.variables = [];
 	}
 
 	/**
@@ -102,7 +100,6 @@ export class SyntaxAnalyzer {
 					if (term.symbol.symbolCode !== SymbolsCodes.identifier) {
 						throw `Invalid assignment at position ${position} in line ${line}.`;
 					}
-					this.variables.push(term.symbol.value.toString());
 					term = new Assignment(term.symbol, secondTerm);
 					break;
         	}
@@ -167,12 +164,7 @@ export class SyntaxAnalyzer {
 				let position = 
 					this.lexicalAnalyzer.fileIO.charPosition - variable.value.toString().length;
 				this.nextSym();
-				if (this.symbol?.stringValue !== SymbolsCodes.equalSymbol &&
-					!this.variables.includes(variable.value.toString())) {
-						throw `Variable "${variable.value}" is not initialized` +
-							` at position ${position} in line ${line}`;
-					}
-				return new Variable(variable);
+				return new Variable(variable, line, position);
 
 			default:
 				this.accept(SymbolsCodes.integerConst); // проверим, что текущий символ это именно константа, а не что-то еще
